@@ -1,10 +1,10 @@
+from ..config import BaseClientConfig
+
 from dataclasses import dataclass
 from typing import Any, Dict
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-
-from config import BaseClientConfig
 
 
 @dataclass

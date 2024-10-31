@@ -1,4 +1,4 @@
-from ..config import BaseClientConfig
+from ..config import BaseProfilingConfig
 
 from dataclasses import dataclass
 from typing import Any, Dict
@@ -6,10 +6,12 @@ from typing import Any, Dict
 from openai import OpenAI
 from openai.types import Completion
 
+from ..vllm_utils.profiling import VLLMProfiling
+
 
 @dataclass
-class ClientConfig(BaseClientConfig):
-    max_tokens: int = 300
+class ProfilingConfig(BaseProfilingConfig):
+    max_tokens: int = 2
     n: int = 1
     temperature: float = 0.7
     top_p: float = 0.9
@@ -29,7 +31,7 @@ class ClientConfig(BaseClientConfig):
 
 
 class OpenAIClient:
-    def __init__(self, client_config: ClientConfig):
+    def __init__(self, client_config: ProfilingConfig):
         self.config = client_config
         self.openai = OpenAI(
             api_key=client_config.api_key, base_url=client_config.base_url
@@ -43,11 +45,26 @@ class OpenAIClient:
 
 
 def main():
-    client = OpenAIClient(ClientConfig())
+    prompts = [
+        " Hello Hello Hello Hello Hello Hello Hello Hello",
+        " Hello Hello Hello Hello Hello Hello Hello Hello",
+        " Hi Hi Hi Hi Hi Hi Hi Hi",
+        " Hi Hi Hi Hi Hi Hi Hi Hi",
+        " Dude Dude Dude Dude Dude Dude Dude Dude",
+        " Dude Dude Dude Dude Dude Dude Dude Dude",
+        " What What What What What What What What",
+        " Hello Hello Hello Hello Hello Hello Hello Hello",
+        " Hi Hi Hi Hi Hi Hi Hi Hi",
+    ]
 
-    while True:
-        prompt = input("Prompt: ")
+    config = ProfilingConfig()
+    client = OpenAIClient(config)
+    profiling = VLLMProfiling(config)
+
+    profiling.start()
+    for prompt in prompts:
         print(client.generate(prompt))
+    profiling.stop()
 
 
 if __name__ == "__main__":

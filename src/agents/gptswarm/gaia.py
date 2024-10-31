@@ -1,4 +1,4 @@
-from ..config import BaseClientConfig  # Must be imported before any other modules
+from ..config import BaseProfilingConfig  # Must be imported before any other modules
 
 import time
 from argparse import ArgumentParser, Namespace
@@ -29,7 +29,7 @@ def run(swarm: Swarm, inputs: Dict[str, Any]) -> Tuple[List[Any], Dict[str, Any]
 
 
 def run_profile(
-    swarm: Swarm, config: BaseClientConfig, inputs: Dict[str, Any]
+    swarm: Swarm, config: BaseProfilingConfig, inputs: Dict[str, Any]
 ) -> Tuple[List[Any], Dict[str, Any]]:
     profiling = VLLMProfiling(config)
     profiling.start()
@@ -41,7 +41,7 @@ def run_profile(
 def main():
     args = parse_args()
 
-    config = BaseClientConfig()
+    config = BaseProfilingConfig()
     swarm = Swarm(
         ["IO"] * args.n, "gaia", model_name=OPENAI_MODEL_PREFIX + config.model
     )
