@@ -1,4 +1,5 @@
 """Python setup.py for project_name package"""
+
 import io
 import os
 from setuptools import find_packages, setup
@@ -44,4 +45,5 @@ setup(
     #     "console_scripts": ["project_name = project_name.__main__:main"]
     # },
     # extras_require={"test": read_requirements("requirements-test.txt")},
+    package_data={"agents": ["py.typed"]},
 )
