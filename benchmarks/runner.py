@@ -261,6 +261,7 @@ def parse_args() -> Namespace:
 
 def main():
     args = parse_args()
+    logger.info("Arguments: %s", args)
     run_benchmark_suite(
         args.benchmarks,
         args.servers,
