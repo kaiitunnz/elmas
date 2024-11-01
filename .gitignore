@@ -2,6 +2,7 @@ results
 notebooks
 logs
 traces
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

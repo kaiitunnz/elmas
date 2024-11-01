@@ -3,15 +3,17 @@ from agents.config import BaseClientConfig
 import json
 import logging
 import multiprocessing as mp
+import functools
 import shutil
-from agents.vllm_utils import start_server
-from agents.vllm_utils.start_server import BaseServerConfig
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
-from pathlib import Path
 from multiprocessing import Process
 from multiprocessing.synchronize import Semaphore
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional
+
+from agents.vllm_utils import start_server
+from agents.vllm_utils.start_server import BaseServerConfig
 
 import pandas as pd
 
@@ -80,6 +82,13 @@ SERVER_CONFIGS = {
         enable_prefix_aware_scheduling=True,
         enable_async_prefetching=False,
     ),
+    "mt-apc-no-prefetch": ServerConfig(
+        enable_prefix_caching=True,
+        enable_multi_tier_prefix_caching=True,
+        enable_async_swapping=True,
+        enable_prefix_aware_scheduling=True,
+        enable_async_prefetching=False,
+    ),
     "mt-apc-no-sched": ServerConfig(
         enable_prefix_caching=True,
         enable_multi_tier_prefix_caching=True,
@@ -105,6 +114,7 @@ class BenchmarkRunner:
         "multiturn_long": multiturn_long.benchmark,
         "multiturn_short": multiturn_short.benchmark,
         "sharegpt": sharegpt.benchmark,
+        "sharegpt_r4": functools.partial(sharegpt.benchmark, request_rate=4),
     }
 
     def __init__(
