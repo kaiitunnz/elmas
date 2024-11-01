@@ -3,6 +3,7 @@ from agents.config import BaseClientConfig
 import json
 import logging
 import multiprocessing as mp
+import shutil
 from agents.vllm_utils import start_server
 from agents.vllm_utils.start_server import BaseServerConfig
 from argparse import ArgumentParser, Namespace
@@ -32,6 +33,7 @@ logger = init_logger()
 
 @dataclass
 class ServerConfig(BaseServerConfig):
+    profiling: bool = False
     log_file: Optional[Path] = None
 
 
@@ -162,6 +164,7 @@ def run_benchmark_suite(
     server_names: Optional[List[str]],
     num_trials: int = 1,
     result_dir: Optional[Path] = None,
+    clear_result_dir: bool = False,
 ):
     if benchmarks is None:
         benchmarks = list(BenchmarkRunner.benchmark_functions)
@@ -172,7 +175,12 @@ def run_benchmark_suite(
         server_configs = {name: SERVER_CONFIGS[name] for name in server_names}
 
     if result_dir is not None:
-        result_dir.mkdir(exist_ok=True)
+        if result_dir.exists():
+            logger.warning("Result directory found: %s", result_dir)
+            if clear_result_dir:
+                logger.warning("Clearing the result directory.")
+                shutil.rmtree(result_dir)
+        result_dir.mkdir(exist_ok=False)
 
     for benchmark in benchmarks:
         logger.info("Running Benchmark: %s", benchmark)
@@ -255,6 +263,11 @@ def parse_args() -> Namespace:
         default=Path.cwd() / "results/new",
         help="Directory to store results. Default: no results saved",
     )
+    parser.add_argument(
+        "--clear-result-dir",
+        action="store_true",
+        help="Clear result directory if it exists",
+    )
 
     return parser.parse_args()
 
@@ -267,6 +280,7 @@ def main():
         args.servers,
         num_trials=args.num_trials,
         result_dir=args.result_dir,
+        clear_result_dir=args.clear_result_dir,
     )
     if args.result_dir is not None:
         clean_result_files(args.result_dir)
