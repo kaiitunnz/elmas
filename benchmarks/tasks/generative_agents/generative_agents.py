@@ -5,8 +5,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
-from sglang.utils import read_jsonl
-
 from tasks.generative_agents.agent_functions import (
     action_location_object_prompt,
     action_location_sector_prompt,
@@ -15,6 +13,7 @@ from tasks.generative_agents.agent_functions import (
     poignancy_event_prompt,
 )
 from tasks.base import SGLangConfigBase
+from utils import utils
 from utils.benchmarker import Benchmarker, RequestFuncOutput
 
 
@@ -36,7 +35,7 @@ class Config(SGLangConfigBase):
 
 
 def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> None:
-    lines = list(read_jsonl(str(benchmark_config.data_path)))[
+    lines = list(utils.read_jsonl(str(benchmark_config.data_path)))[
         : benchmark_config.num_events
     ]
     mapping = {

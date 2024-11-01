@@ -19,4 +19,4 @@ class BenchmarkConfigBase:
 
 @dataclass
 class SGLangConfigBase(BenchmarkConfigBase):
-    benchmark_root: Path = Path.home() / "Workspace/Projects/sglang/benchmark"
+    benchmark_root: Path = Path.cwd() / "benchmarks/tasks"

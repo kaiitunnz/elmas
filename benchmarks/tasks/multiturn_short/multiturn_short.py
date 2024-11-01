@@ -2,14 +2,14 @@ from agents.config import BaseClientConfig
 
 import asyncio
 import itertools
-from collections.abc import Coroutine
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from tasks.base import SGLangConfigBase
 from tasks.multiturn_short.data_gen import gen_arguments
+from utils import utils
 from utils.benchmarker import (
     Benchmarker,
     InputRequest,
@@ -35,15 +35,6 @@ class Config(SGLangConfigBase):
     max_len_q: int = 512
     min_len_a: int = 4
     max_len_a: int = 8
-
-
-def run_coroutine(coroutine: Callable[..., Coroutine], *args) -> Any:
-    loop = asyncio.new_event_loop()
-    try:
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(coroutine(*args))
-    finally:
-        loop.close()
 
 
 async def _multi_turns(
@@ -83,7 +74,7 @@ async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) 
     with benchmarker:
         futures = [
             loop.run_in_executor(
-                executor, run_coroutine, _multi_turns, benchmarker, qas["qas"]
+                executor, utils.run_coroutine, _multi_turns, benchmarker, qas["qas"]
             )
             for qas in multi_qas
         ]
