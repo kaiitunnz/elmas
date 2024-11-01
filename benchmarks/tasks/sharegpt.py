@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from .base import BenchmarkConfigBase
+from tasks.base import BenchmarkConfigBase
 
 
 @dataclass
@@ -34,9 +34,11 @@ class Config(BenchmarkConfigBase):
 
 
 def benchmark(
-    server_config: BaseClientConfig, result_file: Optional[Path] = None
+    server_config: BaseClientConfig,
+    result_file: Optional[Path] = None,
+    **kwargs,
 ) -> None:
-    benchmark_config = Config(result_file=result_file)
+    benchmark_config = Config(result_file=result_file, **kwargs)
 
     subprocess.run(
         [
