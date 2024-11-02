@@ -11,13 +11,12 @@ import time
 import traceback
 import warnings
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import aiohttp
 import numpy as np
+from agents.vllm_utils.openai import request_openai_metrics
 from tqdm.asyncio import tqdm  # type: ignore
-
 from vllm.transformers_utils.tokenizer import AnyTokenizer, get_tokenizer
 
 
@@ -185,6 +184,11 @@ async def async_openai_completions(
 
 
 class Benchmarker:
+    HIT_RATE_METRICS = {
+        "gpu_prefix_cache_hit_rate": "GPU Hit Rate (%)",
+        "cpu_prefix_cache_hit_rate": "CPU Hit Rate (%)",
+    }
+
     def __init__(self, server_config: BaseClientConfig, disabled_pbar: bool = False):
         self.server_config = server_config
         self.disabled_pbar = disabled_pbar
@@ -360,6 +364,19 @@ class Benchmarker:
         process_one_metric("itl")
         process_one_metric("e2el")
 
+        # Add server metrics
+        hit_rate_metrics = request_openai_metrics(self.server_config)
+        for metric in hit_rate_metrics:
+            metric_name = metric.name.lstrip("vllm:")
+            if metric_name not in self.HIT_RATE_METRICS:
+                continue
+            sample = next(
+                sample
+                for sample in metric.samples
+                if sample.labels["model_name"] == self.server_config.model
+            )
+            result[metric_name] = sample.value * 100
+
         return result
 
     def report_results(
@@ -367,43 +384,32 @@ class Benchmarker:
         benchmark_results: Dict[str, float],
         selected_percentile_metrics: List[str],
     ) -> None:
-        print("{s:{c}^{n}}".format(s=" Serving Benchmark Result ", n=50, c="="))
-        print(
-            "{:<40} {:<10}".format(
-                "Successful requests:", benchmark_results["completed"]
-            )
+        def print_header(header: str, c: str = "-"):
+            print("{s:{c}^{n}}".format(s=header, n=50, c=c))
+
+        def print_int_metric(name: str, value: float):
+            print("{:<40} {:<10}".format(name, value))
+
+        def print_float_metric(name: str, value: float):
+            print("{:<40} {:<10.2f}".format(name, value))
+
+        print_header(" Serving Benchmark Result ", "=")
+        print_int_metric("Successful requests:", benchmark_results["completed"])
+        print_float_metric("Benchmark duration (s):", benchmark_results["duration"])
+        print_int_metric("Total input tokens:", benchmark_results["total_input_tokens"])
+        print_int_metric(
+            "Total generated tokens:", benchmark_results["total_output_tokens"]
         )
-        print(
-            "{:<40} {:<10.2f}".format(
-                "Benchmark duration (s):", benchmark_results["duration"]
-            )
+        print_float_metric(
+            "Request throughput (req/s):", benchmark_results["request_throughput"]
         )
-        print(
-            "{:<40} {:<10}".format(
-                "Total input tokens:", benchmark_results["total_input_tokens"]
-            )
+        print_float_metric(
+            "Output token throughput (tok/s):",
+            benchmark_results["output_throughput"],
         )
-        print(
-            "{:<40} {:<10}".format(
-                "Total generated tokens:", benchmark_results["total_output_tokens"]
-            )
-        )
-        print(
-            "{:<40} {:<10.2f}".format(
-                "Request throughput (req/s):", benchmark_results["request_throughput"]
-            )
-        )
-        print(
-            "{:<40} {:<10.2f}".format(
-                "Output token throughput (tok/s):",
-                benchmark_results["output_throughput"],
-            )
-        )
-        print(
-            "{:<40} {:<10.2f}".format(
-                "Total Token throughput (tok/s):",
-                benchmark_results["total_token_throughput"],
-            )
+        print_float_metric(
+            "Total Token throughput (tok/s):",
+            benchmark_results["total_token_throughput"],
         )
 
         def report_one_metric(
@@ -418,18 +424,14 @@ class Benchmarker:
             # metric.
             if metric_attribute_name not in selected_percentile_metrics:
                 return
-            print("{s:{c}^{n}}".format(s=metric_header, n=50, c="-"))
-            print(
-                "{:<40} {:<10.2f}".format(
-                    f"Mean {metric_name} (ms):",
-                    benchmark_results[f"mean_{metric_attribute_name}_ms"],
-                )
+            print_header(metric_header)
+            print_float_metric(
+                f"Mean {metric_name} (ms):",
+                benchmark_results[f"mean_{metric_attribute_name}_ms"],
             )
-            print(
-                "{:<40} {:<10.2f}".format(
-                    f"Median {metric_name} (ms):",
-                    benchmark_results[f"median_{metric_attribute_name}_ms"],
-                )
+            print_float_metric(
+                f"Median {metric_name} (ms):",
+                benchmark_results[f"median_{metric_attribute_name}_ms"],
             )
             for metric_name, value in benchmark_results.items():
                 splitted = metric_name.split("_")
@@ -438,16 +440,17 @@ class Benchmarker:
                 p, attribute_name, _ = splitted
                 if attribute_name == metric_attribute_name and p.startswith("p"):
                     p_word = p[1:]
-                    print(
-                        "{:<40} {:<10.2f}".format(
-                            f"P{p_word} {metric_name} (ms):", value
-                        )
-                    )
+                    print_float_metric(f"P{p_word} {metric_name} (ms):", value)
 
         report_one_metric("ttft", "TTFT", "Time to First Token")
         report_one_metric("tpot", "TPOT", "Time per Output Token (excl. 1st token)")
         report_one_metric("itl", "ITL", "Inter-token Latency")
         report_one_metric("e2el", "E2EL", "End-to-end Latency")
+
+        print_header("Prefix Cache Hit Rate")
+        for metric_name, metric_desc in self.HIT_RATE_METRICS.items():
+            if metric_name in benchmark_results:
+                print_float_metric(metric_desc, benchmark_results[metric_name])
 
         print("=" * 50)
 
@@ -468,7 +471,7 @@ class Benchmarker:
             self._pbar.close()
         self._duration = time.perf_counter() - self._start_time
         self._reset()
-    
+
     @property
     def tokenizer(self) -> AnyTokenizer:
         return self._tokenizer

@@ -1,4 +1,7 @@
+from typing import List
+
 import requests
+from prometheus_client import Metric, parser
 
 from ..config import BaseClientConfig
 
@@ -39,3 +42,11 @@ def request_openai_chat_completions(
 def request_openai_health(config: BaseClientConfig) -> requests.Response:
     api_url = f"{config.base_url.rstrip('/v1')}/health"
     return requests.get(api_url)
+
+
+def request_openai_metrics(config: BaseClientConfig) -> List[Metric]:
+    api_url = f"{config.base_url.rstrip('/v1')}/metrics"
+    response = requests.get(api_url)
+    response.raise_for_status()
+    metrics = list(parser.text_string_to_metric_families(response.text))
+    return metrics
