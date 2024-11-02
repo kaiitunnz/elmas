@@ -8,8 +8,6 @@ from typing import Any, Dict, List
 
 from vllm.transformers_utils.tokenizer import AnyTokenizer
 
-random.seed(42)
-
 
 def gen_prompt(tokenizer: AnyTokenizer, token_num: int) -> str:
     cha_set = string.ascii_letters + string.digits

@@ -1,7 +1,10 @@
 import asyncio
 import json
+import random
 from collections.abc import Coroutine
-from typing import Any, Callable
+from typing import Any, Callable, Optional
+
+import numpy as np
 
 
 def read_jsonl(filename: str):
@@ -20,3 +23,8 @@ def run_coroutine(coroutine: Callable[..., Coroutine], *args) -> Any:
         return loop.run_until_complete(coroutine(*args))
     finally:
         loop.close()
+
+
+def set_seed(seed: Optional[int] = None) -> None:
+    random.seed(seed)
+    np.random.seed(seed)

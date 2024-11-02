@@ -22,7 +22,7 @@ class Config(VLLMConfigBase):
     task_root: Path = VLLMConfigBase.benchmark_root / "generative_agents"
     data_path: Path = task_root / "agent_calls.jsonl"
 
-    num_events: int = 1000
+    num_events: int = 200
     parallel: int = 1
 
 
@@ -72,6 +72,7 @@ def benchmark(
     server_config: BaseClientConfig, result_file: Optional[Path] = None, **kwargs
 ) -> None:
     benchmark_config = Config(result_file=result_file, **kwargs)
+    utils.set_seed(benchmark_config.seed)
     _benchmark(server_config, benchmark_config)
 
 

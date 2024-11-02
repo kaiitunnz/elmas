@@ -7,6 +7,7 @@ from typing import List, Optional
 @dataclass
 class BenchmarkConfigBase:
     result_file: Optional[Path] = None
+    seed: Optional[int] = 42
 
     def __post_init__(self):
         self.result_file = self.result_file or Path(os.devnull)

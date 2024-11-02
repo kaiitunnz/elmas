@@ -93,6 +93,7 @@ def benchmark(
     server_config: BaseClientConfig, result_file: Optional[Path] = None, **kwargs
 ) -> None:
     benchmark_config = Config(result_file=result_file, **kwargs)
+    utils.set_seed(benchmark_config.seed)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(_benchmark(server_config, benchmark_config))
 

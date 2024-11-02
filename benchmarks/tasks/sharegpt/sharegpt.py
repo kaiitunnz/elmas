@@ -15,6 +15,7 @@ from typing import AsyncGenerator, List, Optional, TypeVar
 import numpy as np
 
 from tasks.base import VLLMConfigBase
+from utils import utils
 from utils.benchmarker import AnyTokenizer, Benchmarker, InputRequest, RequestFuncOutput
 
 T = TypeVar("T")
@@ -26,9 +27,8 @@ class Config(VLLMConfigBase):
 
     dataset_name: str = "sharegpt"
     dataset_path: Path = hf_path / "datasets/ShareGPT_V3_unfiltered_cleaned_split.json"
-    num_requests: int = 1000
+    num_requests: int = 200
     request_rate: Optional[float] = 4
-    seed: int = 42
 
 
 def sample_sharegpt_requests(
@@ -97,9 +97,6 @@ async def generate_workload(
 
 
 async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> None:
-    random.seed(benchmark_config.seed)
-    np.random.seed(benchmark_config.seed)
-
     request_rate = benchmark_config.request_rate or float("inf")
 
     benchmarker = Benchmarker(server_config, benchmark_config.disabled_pbar)
@@ -140,6 +137,7 @@ def benchmark(
     **kwargs,
 ) -> None:
     benchmark_config = Config(result_file=result_file, **kwargs)
+    utils.set_seed(benchmark_config.seed)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(_benchmark(server_config, benchmark_config))
 
