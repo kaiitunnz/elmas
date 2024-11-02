@@ -17,17 +17,9 @@ from agents.vllm_utils.start_server import BaseServerConfig
 import pandas as pd
 
 from tasks import generative_agents, multiturn_long, multiturn_short, sharegpt
+from utils.logging import init_logger
 
 BENCHMARK_FUNC_TYPE = Callable[[BaseClientConfig, Optional[Path]], None]
-
-
-def init_logger() -> logging.Logger:
-    logger = logging.getLogger("BenchmarkRunner")
-    logging.basicConfig(
-        level=logging.INFO, format="[%(name)s | %(levelname)s] %(message)s"
-    )
-    return logger
-
 
 logger = init_logger()
 
