@@ -39,10 +39,10 @@ class BaseServerConfig(BaseClientConfig):
 
     profiling: bool = True
 
-    preemption_mode: str = "recompute"
-    num_gpu_blocks_override: int = 512
-    num_cpu_blocks_override: int = 512
-    max_model_len: int = 8192
+    preemption_mode: Optional[str] = "recompute"
+    num_gpu_blocks_override: Optional[int] = 512
+    num_cpu_blocks_override: Optional[int] = 512
+    max_model_len: Optional[int] = 8192
     block_size: int = 16
 
     enable_prefix_caching: bool = True
