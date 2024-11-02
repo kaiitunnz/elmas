@@ -3,7 +3,6 @@ from agents.config import BaseClientConfig
 import json
 import logging
 import multiprocessing as mp
-import functools
 import shutil
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
@@ -114,7 +113,6 @@ class BenchmarkRunner:
         "multiturn_long": multiturn_long.benchmark,
         "multiturn_short": multiturn_short.benchmark,
         "sharegpt": sharegpt.benchmark,
-        "sharegpt_r4": functools.partial(sharegpt.benchmark, request_rate=4),
     }
 
     def __init__(

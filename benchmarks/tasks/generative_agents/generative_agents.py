@@ -12,25 +12,17 @@ from tasks.generative_agents.agent_functions import (
     generate_pronunciatio_prompt,
     poignancy_event_prompt,
 )
-from tasks.base import SGLangConfigBase
+from tasks.base import VLLMConfigBase
 from utils import utils
 from utils.benchmarker import Benchmarker, RequestFuncOutput
 
 
 @dataclass
-class Config(SGLangConfigBase):
-    task_root: Path = SGLangConfigBase.benchmark_root / "generative_agents"
-    python_file_path: Path = task_root / "bench_other.py"
+class Config(VLLMConfigBase):
+    task_root: Path = VLLMConfigBase.benchmark_root / "generative_agents"
     data_path: Path = task_root / "agent_calls.jsonl"
 
-    disabled_pbar: bool = False
-    selected_percentile_metrics: List[str] = field(
-        default_factory=lambda: ["ttft", "tpot", "itl"]
-    )
-    selected_percentiles: List[float] = field(default_factory=lambda: [99])
-
     num_events: int = 1000
-    backend: str = "vllm"
     parallel: int = 1
 
 

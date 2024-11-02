@@ -3,11 +3,11 @@ from agents.config import BaseClientConfig
 import asyncio
 import itertools
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from tasks.base import SGLangConfigBase
+from tasks.base import VLLMConfigBase
 from tasks.multiturn_short.data_gen import gen_arguments
 from utils import utils
 from utils.benchmarker import (
@@ -18,16 +18,7 @@ from utils.benchmarker import (
 
 
 @dataclass
-class Config(SGLangConfigBase):
-    task_root: Path = SGLangConfigBase.benchmark_root / "multi_turn_chat"
-    python_file_path: Path = task_root / "bench_other.py"
-
-    disabled_pbar: bool = False
-    selected_percentile_metrics: List[str] = field(
-        default_factory=lambda: ["ttft", "tpot", "itl"]
-    )
-    selected_percentiles: List[float] = field(default_factory=lambda: [99])
-
+class Config(VLLMConfigBase):
     parallel: int = 64
     turns: int = 4
     num_qa: int = 20

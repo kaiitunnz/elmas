@@ -1,7 +1,7 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 
 @dataclass
@@ -18,5 +18,11 @@ class BenchmarkConfigBase:
 
 
 @dataclass
-class SGLangConfigBase(BenchmarkConfigBase):
+class VLLMConfigBase(BenchmarkConfigBase):
     benchmark_root: Path = Path.cwd() / "benchmarks/tasks"
+
+    disabled_pbar: bool = False
+    selected_percentile_metrics: List[str] = field(
+        default_factory=lambda: ["ttft", "tpot", "itl"]
+    )
+    selected_percentiles: List[float] = field(default_factory=lambda: [99])
