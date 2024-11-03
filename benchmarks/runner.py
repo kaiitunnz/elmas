@@ -11,8 +11,8 @@ from multiprocessing.synchronize import Semaphore
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
-from agents.vllm_utils import start_server
-from agents.vllm_utils.start_server import BaseServerConfig
+from agents.utils.vllm import start_server
+from agents.utils.vllm.start_server import BaseServerConfig
 
 import pandas as pd
 

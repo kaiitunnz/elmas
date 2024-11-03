@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple
 from swarm.graph.swarm import Swarm
 from swarm.llm import OPENAI_MODEL_PREFIX
 
-from ..vllm_utils.profiling import VLLMProfiling
+from ..utils.vllm.profiling import VLLMProfiling
 
 
 def parse_args() -> Namespace:

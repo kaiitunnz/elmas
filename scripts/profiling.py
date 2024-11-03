@@ -5,7 +5,7 @@ from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from agents.vllm_utils.profiling import VLLMProfiling
+from agents.utils.vllm.profiling import VLLMProfiling
 
 @dataclass
 class ProfilingConfig(BaseProfilingConfig):

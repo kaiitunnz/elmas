@@ -1,7 +1,7 @@
 from openai import OpenAI
 
-from ..vllm_utils.openai import request_openai_chat_completions, request_openai_health
-from ..config import BaseProfilingConfig
+from ...utils.vllm.openai import request_openai_chat_completions
+from ...config import BaseProfilingConfig
 
 
 class VLLMProfiling:

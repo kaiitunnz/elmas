@@ -39,15 +39,15 @@ class BaseServerConfig(BaseClientConfig):
 
     profiling: bool = True
 
-    preemption_mode: Optional[str] = "recompute"
-    num_gpu_blocks_override: Optional[int] = 512
-    num_cpu_blocks_override: Optional[int] = 512
-    max_model_len: Optional[int] = 8192
+    preemption_mode: Optional[str] = None
+    num_gpu_blocks_override: Optional[int] = None
+    num_cpu_blocks_override: Optional[int] = None
+    max_model_len: Optional[int] = None
     block_size: int = 16
 
     enable_prefix_caching: bool = True
 
-    enable_multi_tier_prefix_caching: bool = True
+    enable_multi_tier_prefix_caching: bool = False
     enable_async_swapping: bool = True
     enable_prefix_aware_scheduling: bool = True
     enable_async_prefetching: bool = True

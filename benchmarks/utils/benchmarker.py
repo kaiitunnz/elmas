@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Tuple
 
 import aiohttp
 import numpy as np
-from agents.vllm_utils.openai import request_openai_metrics
+from agents.utils.vllm.openai import request_openai_metrics
 from tqdm.asyncio import tqdm  # type: ignore
 from vllm.transformers_utils.tokenizer import AnyTokenizer, get_tokenizer
 

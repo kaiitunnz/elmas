@@ -6,7 +6,7 @@ from typing import Any, Dict
 from openai import OpenAI
 from openai.types import Completion
 
-from ..vllm_utils.profiling import VLLMProfiling
+from ..utils.vllm.profiling import VLLMProfiling
 
 
 @dataclass

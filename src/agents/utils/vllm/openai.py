@@ -3,7 +3,7 @@ from typing import List
 import requests
 from prometheus_client import Metric, parser
 
-from ..config import BaseClientConfig
+from ...config import BaseClientConfig
 
 
 def request_openai_chat_completions(
