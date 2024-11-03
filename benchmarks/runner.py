@@ -260,7 +260,7 @@ def parse_args() -> Namespace:
     parser.add_argument(
         "--result-dir",
         type=Path,
-        default=Path.cwd() / "results/new",
+        default=None,
         help="Directory to store results. Default: no results saved",
     )
     parser.add_argument(
