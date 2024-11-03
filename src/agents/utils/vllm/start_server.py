@@ -37,7 +37,7 @@ class BaseServerConfig(BaseClientConfig):
     log_level: str = "WARN"
     reuse_addr: bool = True
 
-    profiling: bool = True
+    profiling: bool = False
 
     preemption_mode: Optional[str] = "recompute"
     num_gpu_blocks_override: Optional[int] = 512
