@@ -1,8 +1,12 @@
 """Adapted from https://github.dev/modelscope/agentscope."""
 
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from ....utils.utils import read_jsonl
+
+
+DEFAULT_PROMPT_PATH = str(Path(__file__).resolve().parent / "job_prompts.json")
 
 
 class PromptSet:

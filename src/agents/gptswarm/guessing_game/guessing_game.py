@@ -16,6 +16,7 @@ from swarm.optimizer.edge_optimizer.parameterization import EdgeWiseDistribution
 from swarm.utils.log import logger
 
 from .operations.final_answer import FinalAnswer
+from .prompt.prompt_set import DEFAULT_PROMPT_PATH
 from .graph.coordinator import Coordinator
 from .graph.participant import Participant
 
@@ -130,7 +131,7 @@ def parse_args():
     parser.add_argument("--num-participants", type=int, required=True)
     parser.add_argument("--num-steps", type=int, required=True)
     parser.add_argument("--model", type=str, default=None)
-    parser.add_argument("--prompt-path", type=str, default=None)
+    parser.add_argument("--prompt-path", type=str, default=DEFAULT_PROMPT_PATH)
     parser.add_argument("--max-value", type=int, default=100)
     parser.add_argument("--ratio", type=str, default="2/3")
     parser.add_argument("--dump-file", type=str, default=None)
@@ -175,6 +176,7 @@ async def run(
     if dump_file is not None:
         with open(dump_file, "w") as f:
             f.write(repr(swarm.memory))
+        logger.info(f'Memory dumped to "{dump_file}".')
 
     output = swarm.get_output()
     return output
