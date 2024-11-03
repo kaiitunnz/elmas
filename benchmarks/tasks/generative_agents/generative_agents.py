@@ -1,7 +1,7 @@
 from agents.config import BaseClientConfig
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
@@ -41,7 +41,9 @@ def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> Non
     arguments = [mapping[k](**v) for l in lines for k, v in l.items()]  # type: ignore
     outputs: List[RequestFuncOutput] = []
 
-    benchmarker = Benchmarker(server_config, benchmark_config.disabled_pbar)
+    benchmarker = Benchmarker(
+        server_config, benchmark_config.disabled_pbar, seed=benchmark_config.seed
+    )
     input_requests = [benchmarker.create_input_request(**arg) for arg in arguments]
     request_func_inputs = [
         benchmarker.create_request_func_input(request) for request in input_requests
@@ -69,9 +71,9 @@ def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> Non
 
 
 def benchmark(
-    server_config: BaseClientConfig, result_file: Optional[Path] = None, **kwargs
+    server_config: BaseClientConfig, benchmark_config: Optional[Config] = None
 ) -> None:
-    benchmark_config = Config(result_file=result_file, **kwargs)
+    benchmark_config = benchmark_config or Config()
     utils.set_seed(benchmark_config.seed)
     _benchmark(server_config, benchmark_config)
 

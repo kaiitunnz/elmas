@@ -99,7 +99,9 @@ async def generate_workload(
 async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> None:
     request_rate = benchmark_config.request_rate or float("inf")
 
-    benchmarker = Benchmarker(server_config, benchmark_config.disabled_pbar)
+    benchmarker = Benchmarker(
+        server_config, benchmark_config.disabled_pbar, seed=benchmark_config.seed
+    )
     input_requests = sample_sharegpt_requests(
         benchmarker.tokenizer,
         benchmark_config.dataset_path,
@@ -132,11 +134,9 @@ async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) 
 
 
 def benchmark(
-    server_config: BaseClientConfig,
-    result_file: Optional[Path] = None,
-    **kwargs,
+    server_config: BaseClientConfig, benchmark_config: Optional[Config] = None
 ) -> None:
-    benchmark_config = Config(result_file=result_file, **kwargs)
+    benchmark_config = benchmark_config or Config()
     utils.set_seed(benchmark_config.seed)
     asyncio.run(_benchmark(server_config, benchmark_config))
 

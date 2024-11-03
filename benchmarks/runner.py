@@ -9,16 +9,25 @@ from dataclasses import dataclass
 from multiprocessing import Process
 from multiprocessing.synchronize import Semaphore
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Mapping, Optional
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
 from agents.utils.vllm.start_server import BaseServerConfig, start_server
 
 import pandas as pd
 
-from tasks import generative_agents, multiturn_long, multiturn_short, sharegpt
+from tasks.base import BenchmarkConfigBase
+from tasks import (
+    generative_agents,
+    guessing_game,
+    guessing_game_e2e,
+    multiturn_long,
+    multiturn_short,
+    sharegpt,
+)
 from utils.logging import init_logger
 
-BENCHMARK_FUNC_TYPE = Callable[[BaseClientConfig, Optional[Path]], None]
+BENCHMARK_FUNC_TYPE = Callable[[BaseClientConfig, Optional[BenchmarkConfigBase]], None]
+BENCHMARK_CONFIG_TYPE = Callable[..., BenchmarkConfigBase]
 
 logger = init_logger()
 
@@ -130,11 +139,13 @@ def start_llm_server(args: Namespace, config: ServerConfig, sema: Semaphore) -> 
 
 
 class BenchmarkRunner:
-    benchmark_functions: Dict[str, BENCHMARK_FUNC_TYPE] = {
-        "generative_agents": generative_agents.benchmark,
-        "multiturn_long": multiturn_long.benchmark,
-        "multiturn_short": multiturn_short.benchmark,
-        "sharegpt": sharegpt.benchmark,
+    benchmark_dict: Dict[str, Tuple[BENCHMARK_FUNC_TYPE, BENCHMARK_CONFIG_TYPE]] = {
+        "generative_agents": (generative_agents.benchmark, generative_agents.Config),
+        "multiturn_long": (multiturn_long.benchmark, multiturn_long.Config),
+        "multiturn_short": (multiturn_short.benchmark, multiturn_short.Config),
+        "sharegpt": (sharegpt.benchmark, sharegpt.Config),
+        "guessing_game": (guessing_game.benchmark, guessing_game.Config),
+        "guessing_game_e2e": (guessing_game_e2e.benchmark, guessing_game_e2e.Config),
     }
 
     def __init__(
@@ -171,22 +182,23 @@ class BenchmarkRunner:
         server_name: str,
         result_file: Optional[Path] = None,
     ):
-        config = self._server_configs[server_name]
-        args = config.parse_args([])
+        benchmark_func, benchmark_config_cls = self.benchmark_dict[self._benchmark]
+        benchmark_config = benchmark_config_cls(result_file=result_file)
+        server_config = benchmark_config.overwrite(self._server_configs[server_name])
+
+        args = server_config.parse_args([])
         server_sema = mp.Semaphore(0)
-        server_proc = Process(target=start_llm_server, args=(args, config, server_sema))
+        server_proc = Process(
+            target=start_llm_server, args=(args, server_config, server_sema)
+        )
 
         server_proc.start()
         server_sema.acquire()
 
-        self.benchmark_func(config, result_file)
+        benchmark_func(server_config, benchmark_config)
 
         server_proc.terminate()
         server_proc.join()
-
-    @property
-    def benchmark_func(self) -> BENCHMARK_FUNC_TYPE:
-        return self.benchmark_functions[self._benchmark]
 
 
 def run_benchmark_suite(
@@ -197,7 +209,7 @@ def run_benchmark_suite(
     clear_result_dir: bool = False,
 ):
     if benchmarks is None:
-        benchmarks = list(BenchmarkRunner.benchmark_functions)
+        benchmarks = list(BenchmarkRunner.benchmark_dict)
 
     if server_names is None:
         server_configs = SERVER_CONFIGS

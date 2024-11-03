@@ -1,1 +1,1 @@
-from .sharegpt import benchmark
+from .sharegpt import Config, benchmark

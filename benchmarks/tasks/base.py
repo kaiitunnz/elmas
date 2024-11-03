@@ -1,3 +1,5 @@
+from agents.config import BaseClientConfig
+
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -16,6 +18,9 @@ class BenchmarkConfigBase:
     def result_file_str(self) -> str:
         assert self.result_file is not None
         return str(self.result_file.absolute())
+
+    def overwrite(self, server_config: BaseClientConfig) -> BaseClientConfig:
+        return server_config
 
 
 @dataclass

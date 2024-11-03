@@ -1,1 +1,1 @@
-from .multiturn_long import benchmark
+from .multiturn_long import Config, benchmark

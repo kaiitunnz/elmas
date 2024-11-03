@@ -1,1 +1,1 @@
-from .generative_agents import benchmark
+from .generative_agents import Config, benchmark

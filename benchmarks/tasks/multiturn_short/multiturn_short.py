@@ -4,7 +4,6 @@ import asyncio
 import itertools
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from tasks.base import VLLMConfigBase
@@ -47,7 +46,9 @@ async def _multi_turns(
 
 
 async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> None:
-    benchmarker = Benchmarker(server_config, benchmark_config.disabled_pbar)
+    benchmarker = Benchmarker(
+        server_config, benchmark_config.disabled_pbar, seed=benchmark_config.seed
+    )
     multi_qas = gen_arguments(
         turns=benchmark_config.turns,
         num_qa=benchmark_config.num_qa,
@@ -90,9 +91,9 @@ async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) 
 
 
 def benchmark(
-    server_config: BaseClientConfig, result_file: Optional[Path] = None, **kwargs
+    server_config: BaseClientConfig, benchmark_config: Optional[Config] = None
 ) -> None:
-    benchmark_config = Config(result_file=result_file, **kwargs)
+    benchmark_config = benchmark_config or Config()
     utils.set_seed(benchmark_config.seed)
     asyncio.run(_benchmark(server_config, benchmark_config))
 
