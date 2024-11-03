@@ -48,6 +48,7 @@ class GuessTwoThirdGame(Swarm):
         self.model_name = model_name
         self.open_graph_as_html = False
         self.memory = GlobalMemory.instance()
+        self.memory.clear()  # Clear memory at initialization.
         self.final_node_class = "UNUSED"
         self.final_node_kwargs: Dict[str, Any] = {}
         self.edge_optimize = False
@@ -141,9 +142,11 @@ def parse_args():
 def _check_dump_file(dump_file: str) -> None:
     dump_fpath = Path(dump_file)
     if not dump_fpath.parent.exists():
-        raise FileNotFoundError(f"Parent directory of {dump_fpath} does not exist.")
+        raise FileNotFoundError(f'Parent directory of "{dump_file}" does not exist.')
     if dump_fpath.exists():
-        raise FileExistsError(f"{dump_fpath} already exists.")
+        logger.warning(
+            f'Dump file already exists at "{dump_file}" and will be overwritten.'
+        )
 
 
 async def run(

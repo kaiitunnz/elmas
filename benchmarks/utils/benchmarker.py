@@ -11,7 +11,7 @@ import time
 import traceback
 import warnings
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import aiohttp
 import numpy as np
@@ -31,10 +31,28 @@ class RequestFuncInput:
     output_len: int
     model: str
     stop: Optional[str] = None
+    temperature: float = 0.0
     best_of: int = 1
     use_beam_search: bool = False
     logprobs: Optional[int] = None
     multi_modal_content: Optional[dict] = None
+    seed: Optional[int] = None
+
+
+@dataclass
+class RequestFuncChatInput:
+    messages: List[Dict[str, str]]
+    api_url: str
+    prompt_len: int
+    output_len: int
+    model: str
+    stop: Optional[str] = None
+    temperature: float = 0.0
+    best_of: int = 1
+    use_beam_search: bool = False
+    logprobs: Optional[int] = None
+    multi_modal_content: Optional[dict] = None
+    seed: Optional[int] = None
 
 
 @dataclass
@@ -53,7 +71,10 @@ class InputRequest:
     prompt: str
     prompt_len: int
     output_len: int
+    temperature: float = 0.0
+    best_of: int = 1
     stop: Optional[str] = None
+    seed: Optional[int] = None
 
     @classmethod
     def create(
@@ -61,11 +82,53 @@ class InputRequest:
         prompt: str,
         max_tokens: int,
         tokenizer: AnyTokenizer,
+        temperature: float = 0.0,
+        best_of: int = 1,
         stop: Optional[str] = None,
+        seed: Optional[int] = None,
     ) -> "InputRequest":
         prompt_len = len(tokenizer(prompt).input_ids)
         return cls(
-            prompt=prompt, prompt_len=prompt_len, output_len=max_tokens, stop=stop
+            prompt=prompt,
+            prompt_len=prompt_len,
+            output_len=max_tokens,
+            temperature=temperature,
+            best_of=best_of,
+            stop=stop,
+            seed=seed,
+        )
+
+
+@dataclass
+class ChatInputRequest:
+    messages: List[Dict[str, str]]
+    prompt_len: int
+    output_len: int
+    temperature: float = 0.0
+    best_of: int = 1
+    stop: Optional[str] = None
+    seed: Optional[int] = None
+
+    @classmethod
+    def create(
+        cls,
+        messages: List[Dict[str, str]],
+        max_tokens: int,
+        tokenizer: AnyTokenizer,
+        temperature: float = 0.0,
+        best_of: int = 1,
+        stop: Optional[str] = None,
+        seed: Optional[int] = None,
+    ) -> "ChatInputRequest":
+        prompt_len = len(tokenizer.apply_chat_template(messages, tokenize=True))  # type: ignore
+        return cls(
+            messages=messages,
+            prompt_len=prompt_len,
+            output_len=max_tokens,
+            temperature=temperature,
+            best_of=best_of,
+            stop=stop,
+            seed=seed,
         )
 
 
@@ -118,12 +181,13 @@ async def async_openai_completions(
         payload = {
             "model": request_func_input.model,
             "prompt": request_func_input.prompt,
-            "temperature": 0.0,
+            "temperature": request_func_input.temperature,
             "best_of": request_func_input.best_of,
             "max_tokens": request_func_input.output_len,
             "logprobs": request_func_input.logprobs,
             "stream": True,
             "stop": request_func_input.stop,
+            "seed": request_func_input.seed,
         }
         headers = {"Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}"}
 
@@ -183,6 +247,87 @@ async def async_openai_completions(
     return output
 
 
+async def async_openai_chat_completions(
+    request_func_chat_input: RequestFuncChatInput,
+    pbar: Optional[tqdm] = None,
+) -> RequestFuncOutput:
+    api_url = request_func_chat_input.api_url
+    assert api_url.endswith(
+        "chat/completions"
+    ), "OpenAI Completions API URL must end with 'chat/completions'."
+
+    async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
+        assert not request_func_chat_input.use_beam_search
+        payload = {
+            "model": request_func_chat_input.model,
+            "messages": request_func_chat_input.messages,
+            "temperature": request_func_chat_input.temperature,
+            "best_of": request_func_chat_input.best_of,
+            "max_tokens": request_func_chat_input.output_len,
+            "logprobs": request_func_chat_input.logprobs,
+            "stream": True,
+            "stop": request_func_chat_input.stop,
+            "seed": request_func_chat_input.seed,
+        }
+        headers = {"Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}"}
+
+        output = RequestFuncOutput()
+        output.prompt_len = request_func_chat_input.prompt_len
+
+        generated_text = ""
+        ttft = 0.0
+        st = time.perf_counter()
+        most_recent_timestamp = st
+        try:
+            async with session.post(
+                url=api_url, json=payload, headers=headers
+            ) as response:
+                if response.status == 200:
+                    async for chunk_bytes in response.content:
+                        chunk_bytes = chunk_bytes.strip()
+                        if not chunk_bytes:
+                            continue
+
+                        chunk = remove_prefix(chunk_bytes.decode("utf-8"), "data: ")
+                        if chunk == "[DONE]":
+                            latency = time.perf_counter() - st
+                        else:
+                            data = json.loads(chunk)
+
+                            # NOTE: Some completion API might have a last
+                            # usage summary response without a token so we
+                            # want to check a token was generated
+                            delta = data["choices"][0]["delta"]
+                            if delta and delta["content"]:
+                                timestamp = time.perf_counter()
+                                # First token
+                                if ttft == 0.0:
+                                    ttft = time.perf_counter() - st
+                                    output.ttft = ttft
+
+                                # Decoding phase
+                                else:
+                                    output.itl.append(timestamp - most_recent_timestamp)
+
+                                most_recent_timestamp = timestamp
+                                generated_text += delta["content"]
+
+                    output.generated_text = generated_text
+                    output.success = True
+                    output.latency = latency
+                else:
+                    output.error = response.reason or ""
+                    output.success = False
+        except Exception:
+            output.success = False
+            exc_info = sys.exc_info()
+            output.error = "".join(traceback.format_exception(*exc_info))
+
+    if pbar is not None:
+        pbar.update(1)
+    return output
+
+
 class Benchmarker:
     CACHE_METRICS = {
         "cache_block_size": "Cache block size",
@@ -192,11 +337,17 @@ class Benchmarker:
         "cpu_prefix_cache_hit_rate": "CPU prefix cache hit rate (%)",
     }
 
-    def __init__(self, server_config: BaseClientConfig, disabled_pbar: bool = False):
+    def __init__(
+        self,
+        server_config: BaseClientConfig,
+        disabled_pbar: bool = False,
+        seed: Optional[int] = None,
+    ):
         self.server_config = server_config
         self.disabled_pbar = disabled_pbar
         self._tokenizer = get_tokenizer(server_config.model)
         self._duration: float = -1
+        self._seed = seed
         self._reset()
 
     def _reset(self) -> None:
@@ -205,9 +356,34 @@ class Benchmarker:
         self._pbar: Optional[tqdm] = None
 
     def create_input_request(
-        self, prompt: str, max_tokens: int, stop: Optional[str] = None
+        self,
+        prompt: str,
+        max_tokens: int,
+        temperature: float = 0.0,
+        best_of: int = 1,
+        stop: Optional[str] = None,
     ) -> InputRequest:
-        return InputRequest.create(prompt, max_tokens, self._tokenizer, stop)
+        return InputRequest.create(
+            prompt, max_tokens, self._tokenizer, temperature, best_of, stop, self._seed
+        )
+
+    def create_chat_input_request(
+        self,
+        messages: List[Dict[str, str]],
+        max_tokens: int,
+        temperature: float = 0.0,
+        best_of: int = 1,
+        stop: Optional[str] = None,
+    ) -> ChatInputRequest:
+        return ChatInputRequest.create(
+            messages,
+            max_tokens,
+            self._tokenizer,
+            temperature,
+            best_of,
+            stop,
+            self._seed,
+        )
 
     def create_request_func_input(
         self, input_request: InputRequest, endpoint: str = "/completions"
@@ -219,10 +395,30 @@ class Benchmarker:
             output_len=input_request.output_len,
             model=self.server_config.model,
             stop=input_request.stop,
-            best_of=1,
+            temperature=input_request.temperature,
+            best_of=input_request.best_of,
             use_beam_search=False,
             logprobs=None,
             multi_modal_content=None,
+            seed=input_request.seed,
+        )
+
+    def create_request_func_chat_input(
+        self, chat_input_request: ChatInputRequest, endpoint: str = "/chat/completions"
+    ) -> RequestFuncChatInput:
+        return RequestFuncChatInput(
+            messages=chat_input_request.messages,
+            api_url=self.server_config.base_url + endpoint,
+            prompt_len=chat_input_request.prompt_len,
+            output_len=chat_input_request.output_len,
+            model=self.server_config.model,
+            stop=chat_input_request.stop,
+            temperature=chat_input_request.temperature,
+            best_of=chat_input_request.best_of,
+            use_beam_search=False,
+            logprobs=None,
+            multi_modal_content=None,
+            seed=chat_input_request.seed,
         )
 
     def set_num_requests(self, num_requests: int) -> None:
@@ -233,9 +429,16 @@ class Benchmarker:
     ) -> RequestFuncOutput:
         return await async_openai_completions(request_func_input, pbar=self._pbar)
 
+    async def async_chat_request(
+        self, request_func_chat_input: RequestFuncChatInput
+    ) -> RequestFuncOutput:
+        return await async_openai_chat_completions(
+            request_func_chat_input, pbar=self._pbar
+        )
+
     def calculate_metrics(
         self,
-        input_requests: List[InputRequest],
+        input_requests: List[Union[InputRequest, ChatInputRequest]],
         outputs: List[RequestFuncOutput],
         selected_percentiles: List[float],
     ):
@@ -321,7 +524,7 @@ class Benchmarker:
 
     def calculate_results(
         self,
-        input_requests: List[InputRequest],
+        input_requests: List[Union[InputRequest, ChatInputRequest]],
         outputs: List[RequestFuncOutput],
         selected_percentile_metrics: List[str],
         selected_percentiles: List[float],
@@ -370,7 +573,7 @@ class Benchmarker:
         # Add server metrics
         cache_metrics = request_openai_metrics(self.server_config)
         for metric in cache_metrics:
-            metric_name = metric.name.lstrip("vllm:")
+            metric_name = metric.name[len("vllm:") :]
             if metric_name == "cache_config_info":
                 labels = metric.samples[0].labels
                 result["cache_block_size"] = int(labels["block_size"])

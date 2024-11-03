@@ -29,9 +29,9 @@ class ParsingStep(Node):
             role="user",
             content=self.prompt_set.get_parser_user_prompt(),
         )
-        self.config = ClientConfig(
-            model=model_name.lstrip(OPENAI_MODEL_PREFIX)
-        ).load_json(str(Path(__file__).parent / "model_config.json"))
+        self.config = ClientConfig(model=model_name).load_json(
+            str(Path(__file__).parent / "model_config.json")
+        )
 
     def _get_message(self, msg: Message) -> List[Message]:
         messages = [

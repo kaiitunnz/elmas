@@ -26,9 +26,9 @@ class ParticipantStep(Node):
         self.model_name = model_name
         self.graph_id = graph_id
         self.llm = LLMRegistry.get(model_name)
-        self.config = ClientConfig(
-            model=model_name.lstrip(OPENAI_MODEL_PREFIX)
-        ).load_json(str(Path(__file__).parent / "model_config.json"))
+        self.config = ClientConfig(model=model_name).load_json(
+            str(Path(__file__).parent / "model_config.json")
+        )
 
     @property
     def node_name(self):
