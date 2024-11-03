@@ -184,9 +184,12 @@ async def async_openai_completions(
 
 
 class Benchmarker:
-    HIT_RATE_METRICS = {
-        "gpu_prefix_cache_hit_rate": "GPU Hit Rate (%)",
-        "cpu_prefix_cache_hit_rate": "CPU Hit Rate (%)",
+    CACHE_METRICS = {
+        "cache_block_size": "Cache Block Size",
+        "num_gpu_blocks": "Number of GPU Blocks",
+        "num_cpu_blocks": "Number of CPU Blocks",
+        "gpu_prefix_cache_hit_rate": "GPU Prefix Cache Hit Rate (%)",
+        "cpu_prefix_cache_hit_rate": "CPU Prefix Cache Hit Rate (%)",
     }
 
     def __init__(self, server_config: BaseClientConfig, disabled_pbar: bool = False):
@@ -365,10 +368,16 @@ class Benchmarker:
         process_one_metric("e2el")
 
         # Add server metrics
-        hit_rate_metrics = request_openai_metrics(self.server_config)
-        for metric in hit_rate_metrics:
+        cache_metrics = request_openai_metrics(self.server_config)
+        for metric in cache_metrics:
             metric_name = metric.name.lstrip("vllm:")
-            if metric_name not in self.HIT_RATE_METRICS:
+            if metric_name == "cache_config_info":
+                labels = metric.samples[0].labels
+                result["cache_block_size"] = int(labels["block_size"])
+                result["num_gpu_blocks"] = int(labels["num_gpu_blocks"])
+                result["num_cpu_blocks"] = int(labels["num_cpu_blocks"])
+                continue
+            if metric_name not in self.CACHE_METRICS:
                 continue
             sample = next(
                 sample
@@ -447,10 +456,14 @@ class Benchmarker:
         report_one_metric("itl", "ITL", "Inter-token Latency")
         report_one_metric("e2el", "E2EL", "End-to-end Latency")
 
-        print_header("Prefix Cache Hit Rate")
-        for metric_name, metric_desc in self.HIT_RATE_METRICS.items():
+        print_header("Cache Metrics")
+        int_metrics = ["cache_block_size", "num_gpu_blocks", "num_cpu_blocks"]
+        for metric_name, metric_desc in self.CACHE_METRICS.items():
             if metric_name in benchmark_results:
-                print_float_metric(metric_desc, benchmark_results[metric_name])
+                if metric_name in int_metrics:
+                    print_int_metric(metric_desc, benchmark_results[metric_name])
+                else:
+                    print_float_metric(metric_desc, benchmark_results[metric_name])
 
         print("=" * 50)
 
