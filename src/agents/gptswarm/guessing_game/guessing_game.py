@@ -177,10 +177,6 @@ async def run(
             f.write(repr(swarm.memory))
 
     output = swarm.get_output()
-    logger.debug(f"Round winners: {output.round_winners}")
-    for i, participant_answers in enumerate(output.participant_answers):
-        logger.debug(f"Participant {i} answers: {participant_answers}")
-
     return output
 
 
