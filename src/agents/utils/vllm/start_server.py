@@ -39,19 +39,6 @@ class BaseServerConfig(BaseClientConfig):
 
     profiling: bool = False
 
-    preemption_mode: Optional[str] = "recompute"
-    num_gpu_blocks_override: Optional[int] = 512
-    num_cpu_blocks_override: Optional[int] = 512
-    max_model_len: Optional[int] = 8192
-    block_size: int = 16
-
-    enable_prefix_caching: bool = True
-
-    enable_multi_tier_prefix_caching: bool = True
-    enable_async_swapping: bool = True
-    enable_prefix_aware_scheduling: bool = True
-    enable_async_prefetching: bool = True
-
     @property
     def trace_dir(self) -> Path:
         return self.root_dir / "traces"
@@ -63,16 +50,6 @@ class BaseServerConfig(BaseClientConfig):
             port=self.port,
             device=self.device,
             uvicorn_log_level=self.uvicorn_log_level,
-            preemption_mode=self.preemption_mode,
-            num_gpu_blocks_override=self.num_gpu_blocks_override,
-            num_cpu_blocks_override=self.num_cpu_blocks_override,
-            max_model_len=self.max_model_len,
-            block_size=self.block_size,
-            enable_prefix_caching=self.enable_prefix_caching,
-            enable_multi_tier_prefix_caching=self.enable_multi_tier_prefix_caching,
-            enable_async_swapping=self.enable_async_swapping,
-            enable_prefix_aware_scheduling=self.enable_prefix_aware_scheduling,
-            enable_async_prefetching=self.enable_async_prefetching,
         )
 
     def engine_args(self) -> Dict[str, Any]:
@@ -208,7 +185,7 @@ async def run_server(args, sema: Optional[Semaphore] = None, **uvicorn_kwargs) -
     await shutdown_task
 
 
-def main(
+def start_server(
     args: Namespace, config: BaseServerConfig, sema: Optional[Semaphore] = None
 ) -> None:
     log_level = (
@@ -225,4 +202,4 @@ def main(
 if __name__ == "__main__":
     config = BaseServerConfig()
     args = config.parse_args()
-    main(args, config)
+    start_server(args, config)

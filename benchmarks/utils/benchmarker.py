@@ -185,11 +185,11 @@ async def async_openai_completions(
 
 class Benchmarker:
     CACHE_METRICS = {
-        "cache_block_size": "Cache Block Size",
-        "num_gpu_blocks": "Number of GPU Blocks",
-        "num_cpu_blocks": "Number of CPU Blocks",
-        "gpu_prefix_cache_hit_rate": "GPU Prefix Cache Hit Rate (%)",
-        "cpu_prefix_cache_hit_rate": "CPU Prefix Cache Hit Rate (%)",
+        "cache_block_size": "Cache block size",
+        "num_gpu_blocks": "Number of GPU blocks",
+        "num_cpu_blocks": "Number of CPU blocks",
+        "gpu_prefix_cache_hit_rate": "GPU prefix cache hit rate (%)",
+        "cpu_prefix_cache_hit_rate": "CPU prefix cache hit rate (%)",
     }
 
     def __init__(self, server_config: BaseClientConfig, disabled_pbar: bool = False):
@@ -417,7 +417,7 @@ class Benchmarker:
             benchmark_results["output_throughput"],
         )
         print_float_metric(
-            "Total Token throughput (tok/s):",
+            "Total token throughput (tok/s):",
             benchmark_results["total_token_throughput"],
         )
 

@@ -11,8 +11,7 @@ from multiprocessing.synchronize import Semaphore
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
-from agents.utils.vllm import start_server
-from agents.utils.vllm.start_server import BaseServerConfig
+from agents.utils.vllm.start_server import BaseServerConfig, start_server
 
 import pandas as pd
 
@@ -26,8 +25,39 @@ logger = init_logger()
 
 @dataclass
 class ServerConfig(BaseServerConfig):
-    profiling: bool = False
     log_file: Optional[Path] = None
+
+    preemption_mode: Optional[str] = "recompute"
+    num_gpu_blocks_override: Optional[int] = 512
+    num_cpu_blocks_override: Optional[int] = 512
+    max_model_len: Optional[int] = 8192
+    block_size: int = 16
+
+    enable_prefix_caching: bool = True
+
+    enable_multi_tier_prefix_caching: bool = True
+    enable_async_swapping: bool = True
+    enable_prefix_aware_scheduling: bool = True
+    enable_async_prefetching: bool = True
+
+    def default_args(self) -> Namespace:
+        return Namespace(
+            model=self.model,
+            host=self.host,
+            port=self.port,
+            device=self.device,
+            uvicorn_log_level=self.uvicorn_log_level,
+            preemption_mode=self.preemption_mode,
+            num_gpu_blocks_override=self.num_gpu_blocks_override,
+            num_cpu_blocks_override=self.num_cpu_blocks_override,
+            max_model_len=self.max_model_len,
+            block_size=self.block_size,
+            enable_prefix_caching=self.enable_prefix_caching,
+            enable_multi_tier_prefix_caching=self.enable_multi_tier_prefix_caching,
+            enable_async_swapping=self.enable_async_swapping,
+            enable_prefix_aware_scheduling=self.enable_prefix_aware_scheduling,
+            enable_async_prefetching=self.enable_async_prefetching,
+        )
 
 
 SERVER_CONFIGS = {
@@ -96,7 +126,7 @@ def start_llm_server(args: Namespace, config: ServerConfig, sema: Semaphore) -> 
     vllm_logger.removeHandler(handler)
     if config.log_file is not None:
         vllm_logger.addHandler(logging.FileHandler(config.log_file))
-    start_server.main(args, config, sema)
+    start_server(args, config, sema)
 
 
 class BenchmarkRunner:
