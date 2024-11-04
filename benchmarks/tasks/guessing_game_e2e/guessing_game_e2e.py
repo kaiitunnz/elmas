@@ -15,11 +15,12 @@ class Config(VLLMConfigBase):
     ratio: str = "2/3"
     dump_file: Optional[str] = "/home/noppanat/Workspace/Projects/elmas/logs/memory.log"
 
-    num_participants: int = 200
+    num_participants: int = 1000
     num_steps: int = 5
 
     num_gpu_blocks_override: Optional[int] = None
     num_cpu_blocks_override: Optional[int] = None
+    swap_space: int = 16
     max_model_len: Optional[int] = None
 
     @property
@@ -32,6 +33,7 @@ class Config(VLLMConfigBase):
             server_config,
             num_gpu_blocks_override=self.num_gpu_blocks_override,
             num_cpu_blocks_override=self.num_cpu_blocks_override,
+            swap_space=self.swap_space,
             max_model_len=self.max_model_len,
         )  # type: ignore
 

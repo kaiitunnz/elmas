@@ -34,11 +34,13 @@ logger = init_logger()
 
 @dataclass
 class ServerConfig(BaseServerConfig):
+    DEFAULT_SWAP_SPACE = 4
     log_file: Optional[Path] = None
 
     preemption_mode: Optional[str] = "recompute"
     num_gpu_blocks_override: Optional[int] = 512
     num_cpu_blocks_override: Optional[int] = 512
+    swap_space: Optional[int] = None
     max_model_len: Optional[int] = 8192
     block_size: int = 16
 
@@ -48,6 +50,7 @@ class ServerConfig(BaseServerConfig):
     enable_async_swapping: bool = True
     enable_prefix_aware_scheduling: bool = True
     enable_async_prefetching: bool = True
+    scheduler_window_size: Optional[int] = 10
 
     def default_args(self) -> Namespace:
         return Namespace(
@@ -59,6 +62,7 @@ class ServerConfig(BaseServerConfig):
             preemption_mode=self.preemption_mode,
             num_gpu_blocks_override=self.num_gpu_blocks_override,
             num_cpu_blocks_override=self.num_cpu_blocks_override,
+            swap_space=self.swap_space or self.DEFAULT_SWAP_SPACE,
             max_model_len=self.max_model_len,
             block_size=self.block_size,
             enable_prefix_caching=self.enable_prefix_caching,
@@ -66,6 +70,7 @@ class ServerConfig(BaseServerConfig):
             enable_async_swapping=self.enable_async_swapping,
             enable_prefix_aware_scheduling=self.enable_prefix_aware_scheduling,
             enable_async_prefetching=self.enable_async_prefetching,
+            scheduler_window_size=self.scheduler_window_size,
         )
 
 
