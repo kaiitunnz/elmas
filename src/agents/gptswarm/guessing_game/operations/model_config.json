@@ -6,6 +6,6 @@
     "temperature": 1.0
   },
   "[benchmark]meta-llama/Meta-Llama-3-8B-Instruct": {
-    "temperature": 1.0
+    "temperature": 0.0
   }
 }

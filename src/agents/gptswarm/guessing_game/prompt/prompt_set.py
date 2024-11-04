@@ -60,7 +60,7 @@ class PromptSet:
     def get_participant_system_prompt(self, idx: int = -1) -> str:
         return self._system_prompts[idx]
 
-    def get_participant_user_prompt(self, idx: int = -1) -> str:
+    def get_participant_user_prompt(self, idx: int = 0) -> str:
         return self._user_prompts[idx]
 
     def get_participant_persona_prompt(self, idx: int) -> str:
@@ -92,7 +92,7 @@ class PromptSet:
         return self._parser_prompts[1]
 
     def get_coordinator_output_prompt(
-        self, winner: float, usr_prompt_idx: int = -1
+        self, winner: float, usr_prompt_idx: int = 0
     ) -> str:
         return self._coordinator_prompts.format(
             winner=winner, usr_prompt=self._user_prompts[usr_prompt_idx]

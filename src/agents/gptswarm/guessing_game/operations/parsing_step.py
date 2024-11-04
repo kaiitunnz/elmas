@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from swarm.graph.node import Node
-from swarm.llm import LLMRegistry, OPENAI_MODEL_PREFIX
+from swarm.llm import LLMRegistry
 from swarm.llm.format import Message
 
 from ..prompt.prompt_set import PromptSet

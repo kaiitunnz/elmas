@@ -39,7 +39,7 @@ class CoordinatorStep(Node):
                 sum += output
                 count += 1
 
-        winner = sum / count * RATIO_MAP[self._ratio]
+        winner = 0 if count == 0 else (sum / count * RATIO_MAP[self._ratio])
         output_msg = (
             winner
             if self._is_last_step
