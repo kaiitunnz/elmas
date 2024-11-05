@@ -55,6 +55,7 @@ class ParsingStep(Node):
         numbers = re.findall(r"(\d+(\.\d+)?)", output)
         output_number = -1 if len(numbers) == 0 else float(numbers[0][0])
 
+        self.memory.add("parser", {"input": messages, "output": output})
         output_dict = {
             "operation": self.node_name,
             "output": input_msg,
