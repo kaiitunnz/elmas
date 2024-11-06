@@ -2,12 +2,10 @@ from agents.config import BaseClientConfig
 from tasks.guessing_game.benchmark_llm import BenchmarkLLM
 
 import asyncio
-import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterator, List, Optional
 
-from agents.gptswarm.guessing_game import guessing_game
 from swarm.environment.operations.final_decision import MergingStrategy
 from swarm.graph.swarm import Swarm
 from swarm.graph.graph import Graph
@@ -23,12 +21,20 @@ from utils.benchmarker import Benchmarker
 @dataclass
 class Config(VLLMConfigBase):
     mode: str = "full_connected_swarm"
-    num_truthful_agents: int = 100
+    num_truthful_agents: int = 400
     domain: str = "mmlu"
-    eval_batch_size: int = 4
-    num_questions: Optional[int] = 100
+    eval_batch_size: int = 1
+    num_questions: Optional[int] = 20
     dataset_dir: Path = Path(__file__).resolve().parent / "data"
     dataset_split: str = "val"
+
+    num_gpu_blocks_override: Optional[int] = None
+    num_cpu_blocks_override: Optional[int] = None
+    swap_space: int = 16
+    max_model_len: Optional[int] = None
+    num_thoughts: Optional[int] = None
+
+    scheduler_window_size: Optional[int] = 10
 
     def get_num_requests(self, dataset: MMLUDataset) -> int:
         num_questions = (
@@ -37,7 +43,17 @@ class Config(VLLMConfigBase):
             else len(dataset)
         )
         # 1 truthful agent + 1 adversarial agent per question
-        return num_questions * self.num_truthful_agents * 2
+        return num_questions * self.num_truthful_agents * 2 * (self.num_thoughts or 1)
+
+    def overwrite(self, server_config: BaseClientConfig) -> BaseClientConfig:
+        return replace(
+            server_config,
+            num_gpu_blocks_override=self.num_gpu_blocks_override,
+            num_cpu_blocks_override=self.num_cpu_blocks_override,
+            swap_space=self.swap_space,
+            max_model_len=self.max_model_len,
+            scheduler_window_size=self.scheduler_window_size,
+        )  # type: ignore
 
 
 async def _run_swarm(
@@ -85,7 +101,8 @@ async def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) 
     BenchmarkLLM.configure(benchmarker)
 
     n = benchmark_config.num_truthful_agents
-    agent_name_list = ["IO"] * n + ["AdversarialAgent"] * n
+    agent_name_list = ["COT" if benchmark_config.num_thoughts else "IO"] * n
+    agent_name_list += ["AdversarialAgent"] * n
     swarm = Swarm(
         agent_names=agent_name_list,
         domain=benchmark_config.domain,
