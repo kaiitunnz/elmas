@@ -18,6 +18,7 @@ import pandas as pd
 from tasks.base import BenchmarkConfigBase
 from tasks import (
     generative_agents,
+    gptswarm_mmlu,
     guessing_game,
     guessing_game_e2e,
     guessing_game_e2e_cot,
@@ -165,6 +166,10 @@ class BenchmarkRunner:
         "guessing_game": (
             guessing_game.benchmark,
             guessing_game.Config,
+        ),
+        "gptswarm_mmlu": (
+            gptswarm_mmlu.benchmark,
+            gptswarm_mmlu.Config,
         ),
         "guessing_game_e2e": (
             guessing_game_e2e.benchmark,

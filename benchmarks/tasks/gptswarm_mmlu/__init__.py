@@ -1,0 +1,1 @@
+from .gptswarm_mmlu import Config, benchmark
