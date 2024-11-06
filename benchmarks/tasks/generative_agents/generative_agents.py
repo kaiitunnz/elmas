@@ -54,10 +54,9 @@ def _benchmark(server_config: BaseClientConfig, benchmark_config: Config) -> Non
         answer = await benchmarker.async_request(request_func_input)
         outputs.append(answer)
 
-    loop = asyncio.get_event_loop()
     with benchmarker:
         for arg in request_func_inputs:
-            loop.run_until_complete(get_one_answer_async(arg))
+            asyncio.run(get_one_answer_async(arg))
 
     results = benchmarker.calculate_results(
         input_requests,
