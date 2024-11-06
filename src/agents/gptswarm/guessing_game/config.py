@@ -14,11 +14,11 @@ class ClientConfig(BaseClientConfig):
     def load_json(self, path: str) -> "ClientConfig":
         with open(path, "r") as f:
             config: Dict[str, Any] = json.load(f)[self.model]
-        self.temperature = config.get("temperature", 1.0)
-        self.num_comps = config.get("num_comps", None)
-        self.max_tokens = config.get("max_tokens", None)
+        self.temperature = config.get("temperature", self.temperature)
+        self.num_comps = config.get("num_comps", self.num_comps)
+        self.max_tokens = config.get("max_tokens", self.max_tokens)
         return self
-    
+
     def to_kwargs(self) -> Dict[str, Any]:
         return {
             "temperature": self.temperature,

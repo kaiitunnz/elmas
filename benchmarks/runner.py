@@ -20,6 +20,7 @@ from tasks import (
     generative_agents,
     guessing_game,
     guessing_game_e2e,
+    guessing_game_e2e_cot,
     multiturn_long,
     multiturn_short,
     sharegpt,
@@ -145,12 +146,34 @@ def start_llm_server(args: Namespace, config: ServerConfig, sema: Semaphore) -> 
 
 class BenchmarkRunner:
     benchmark_dict: Dict[str, Tuple[BENCHMARK_FUNC_TYPE, BENCHMARK_CONFIG_TYPE]] = {
-        "generative_agents": (generative_agents.benchmark, generative_agents.Config),
-        "multiturn_long": (multiturn_long.benchmark, multiturn_long.Config),
-        "multiturn_short": (multiturn_short.benchmark, multiturn_short.Config),
-        "sharegpt": (sharegpt.benchmark, sharegpt.Config),
-        "guessing_game": (guessing_game.benchmark, guessing_game.Config),
-        "guessing_game_e2e": (guessing_game_e2e.benchmark, guessing_game_e2e.Config),
+        "generative_agents": (
+            generative_agents.benchmark,
+            generative_agents.Config,
+        ),
+        "multiturn_long": (
+            multiturn_long.benchmark,
+            multiturn_long.Config,
+        ),
+        "multiturn_short": (
+            multiturn_short.benchmark,
+            multiturn_short.Config,
+        ),
+        "sharegpt": (
+            sharegpt.benchmark,
+            sharegpt.Config,
+        ),
+        "guessing_game": (
+            guessing_game.benchmark,
+            guessing_game.Config,
+        ),
+        "guessing_game_e2e": (
+            guessing_game_e2e.benchmark,
+            guessing_game_e2e.Config,
+        ),
+        "guessing_game_e2e_cot": (
+            guessing_game_e2e_cot.benchmark,
+            guessing_game_e2e_cot.Config,
+        ),
     }
 
     def __init__(

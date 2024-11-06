@@ -5,6 +5,8 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Optional
 
+from agents.gptswarm.guessing_game.prompt.prompt_set import PromptSet
+
 from tasks.base import VLLMConfigBase
 from tasks.guessing_game import guessing_game
 from utils import utils
@@ -47,7 +49,10 @@ def benchmark(
 ) -> None:
     benchmark_config = benchmark_config or Config()
     utils.set_seed(benchmark_config.seed)
+    tmp_user_prompt = PromptSet._user_prompts.copy()
+    PromptSet._user_prompts[0] = tmp_user_prompt[-1]
     asyncio.run(guessing_game._benchmark(server_config, benchmark_config))
+    PromptSet._user_prompts = tmp_user_prompt
 
 
 if __name__ == "__main__":

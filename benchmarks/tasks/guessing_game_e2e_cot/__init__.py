@@ -1,0 +1,1 @@
+from .guessing_game_e2e_cot import Config, benchmark
