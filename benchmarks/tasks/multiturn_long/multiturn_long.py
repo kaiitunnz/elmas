@@ -10,9 +10,9 @@ from utils import utils
 
 @dataclass
 class Config(multiturn_short.Config):
-    num_qa: int = 5
-    min_len_a: int = 256
-    max_len_a: int = 512
+    num_qa: int = 10
+    min_len_a: int = 64
+    max_len_a: int = 128
 
 
 def benchmark(
