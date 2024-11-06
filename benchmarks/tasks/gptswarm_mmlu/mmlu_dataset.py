@@ -1,7 +1,6 @@
 """
 Adapted from https://github.com/metauto-ai/GPTSwarm.
 """
-import glob
 import random
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Union
