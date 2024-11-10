@@ -139,11 +139,9 @@ def benchmark(
     server_config: BaseClientConfig, benchmark_config: Optional[Config] = None
 ) -> None:
     logger.remove()
-    # logger.disable(None)
     benchmark_config = benchmark_config or Config()
     utils.set_seed(benchmark_config.seed)
     asyncio.run(_benchmark(server_config, benchmark_config))
-    # logger.enable(None)
 
 
 if __name__ == "__main__":
