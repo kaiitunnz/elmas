@@ -317,12 +317,14 @@ def parse_args() -> Namespace:
         "--benchmarks",
         type=str,
         nargs="+",
+        choices=list(BenchmarkRunner.benchmark_dict),
         help="List of benchmarks to run. Default: all benchmarks",
     )
     parser.add_argument(
         "--servers",
         type=str,
         nargs="+",
+        choices=list(SERVER_CONFIGS),
         help="List of server configurations to run. Default: all server configurations",
     )
 

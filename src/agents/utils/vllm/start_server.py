@@ -32,7 +32,6 @@ from vllm.version import __version__ as VLLM_VERSION
 class BaseServerConfig(BaseClientConfig):
     root_dir: Path = Path.cwd()
     device: str = os.getenv("DEFAULT_DEVICE", "cpu")
-    server_path: str = "vllm.entrypoints.openai.api_server"
     uvicorn_log_level: str = "warning"
     log_level: str = "WARN"
     reuse_addr: bool = True

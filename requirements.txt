@@ -1,4 +1,2 @@
--e /home/noppanat/Workspace/Projects/GPTSwarm
-
 langchain
 langchain-openai

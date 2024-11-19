@@ -9,7 +9,7 @@ from swarm.llm import OPENAI_MODEL_PREFIX
 from swarm.optimizer.edge_optimizer.optimization import optimize
 
 
-GPTSWARM_ROOT_DIR = Path("/home/noppanat/Workspace/Projects/GPTSwarm")
+GPTSWARM_ROOT_DIR = Path.cwd() / "GPTSwarm"
 CROSSWORDS_FILE_PATH = GPTSWARM_ROOT_DIR / "datasets/crosswords/mini0505_0_100_5.json"
 
 

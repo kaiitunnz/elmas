@@ -4,7 +4,7 @@ STANDARD_WORKLOADS="generative_agents guessing_game multiturn_long multiturn_sho
 MA_WORKLOADS="gptswarm_mmlu guessing_game_e2e guessing_game_e2e_cot"
 MA_WORKLOADS_SERVERS="no-apc apc mt-apc mt-apc-no-sched"
 
-ROOT_RESULT_DIR="$HOME/Workspace/Projects/elmas/results"
+ROOT_RESULT_DIR="$(pwd)/results"
 
 # Experiments with standard workloads
 python -O benchmarks/runner.py \

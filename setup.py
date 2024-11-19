@@ -1,4 +1,4 @@
-"""Python setup.py for project_name package"""
+"""Python setup.py for agents package"""
 
 import io
 import os
@@ -35,15 +35,10 @@ def read_requirements(path):
 setup(
     name="agents",
     version=__version__,
-    description="LLM agents template code",
-    # long_description=read("README.md"),
-    # long_description_content_type="text/markdown",
+    description="Utility code for deploying LLM serving systems and running LLM agents",
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     author="Noppanat Wadlom",
-    # packages=find_packages(exclude=["tests", ".github"]),
-    # install_requires=read_requirements("requirements.txt"),
-    # entry_points={
-    #     "console_scripts": ["project_name = project_name.__main__:main"]
-    # },
-    # extras_require={"test": read_requirements("requirements-test.txt")},
+    install_requires=read_requirements("requirements.txt"),
     package_data={"agents": ["py.typed"]},
 )
