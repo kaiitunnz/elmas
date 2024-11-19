@@ -55,6 +55,12 @@ This repository supports evaluating and benchmarking MT-APC and other baselines 
 
 4. Create a `.env` file for default server configuration. See [.env.example](./.env.example) for reference.
 
+Note: If you encounter the following error: `ImportError: cannot import name 'cached_download' from 'huggingface_hub'`, add the following line to `<PYTHON_LIBRARY_PATH>/huggingface_hub/__init__.py`.
+
+```python
+cached_download = None
+```
+
 ### Dependencies
 
 The project depends on the following:
