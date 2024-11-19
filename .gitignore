@@ -1,7 +1,7 @@
 results
 notebooks
 logs
-traces
+traces/*.gz
 .vscode
 data
 
