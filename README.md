@@ -1,6 +1,6 @@
 # Efficient LLM Serving with Multi-Tier, Prefix-Aware KV Cache Sharing for Scalable Multi-Agent Systems
 
-This repository contains the implementation of benchmarks described in the report and scripts for deploying the vLLM server and client programs. The implementation of **MT-APC** is available in a separate repository [here](https://github.com/kaiitunnz/vllm).
+This repository contains the implementation of benchmarks described in the report and scripts for deploying the vLLM server and client programs. The implementation of **MT-APC** is available in a separate repository [here](https://github.com/kaiitunnz/elmas-vllm).
 
 ## Table of Contents
 

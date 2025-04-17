@@ -2,7 +2,7 @@
 set -e
 
 # Install our version of vLLM
-git clone https://github.com/kaiitunnz/vllm.git
+git clone https://github.com/kaiitunnz/elmas-vllm.git vllm
 cd vllm
 # Install the wheel for v0.6.3.post1
 pip install https://vllm-wheels.s3.us-west-2.amazonaws.com/a2c71c5405fdd8822956bcd785e72149c1cfb655/vllm-1.0.0.dev-cp38-abi3-manylinux1_x86_64.whl
